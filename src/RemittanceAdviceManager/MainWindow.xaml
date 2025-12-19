@@ -1,0 +1,40 @@
+﻿<Window x:Class="RemittanceAdviceManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RemittanceAdviceManager"
+        xmlns:views="clr-namespace:RemittanceAdviceManager.Views"
+        mc:Ignorable="d"
+        Title="Remittance Advice Manager" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tab Control -->
+        <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Downloaded Files">
+                <views:DownloadedFilesView DataContext="{Binding CurrentView}"/>
+            </TabItem>
+            <TabItem Header="Altered PDFs">
+                <views:AlteredPdfsView DataContext="{Binding CurrentView}"/>
+            </TabItem>
+            <TabItem Header="Upload to WebDB">
+                <views:UploadToWebDbView DataContext="{Binding CurrentView}"/>
+            </TabItem>
+            <TabItem Header="Download Reports">
+                <views:DownloadReportsView DataContext="{Binding CurrentView}"/>
+            </TabItem>
+        </TabControl>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="1">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

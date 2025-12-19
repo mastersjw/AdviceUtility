@@ -1,0 +1,67 @@
+<UserControl x:Class="RemittanceAdviceManager.Views.AlteredPdfsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:RemittanceAdviceManager.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <Button Content="Refresh" Command="{Binding LoadFilesCommand}" Padding="10,5"/>
+                <Separator/>
+                <Button Content="Print Selected" Command="{Binding PrintSelectedCommand}" Padding="10,5"/>
+                <Button Content="Print All" Command="{Binding PrintAllCommand}" Padding="10,5"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding AlteredFiles}"
+                  SelectedItem="{Binding SelectedFile}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  CanUserAddRows="False"
+                  Margin="5">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
+                <DataGridTextColumn Header="Altered Date" Binding="{Binding DownloadedDate, StringFormat=\{0:g\}}" Width="150"/>
+                <DataGridTextColumn Header="Advice #" Binding="{Binding AdviceNumber}" Width="100"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                <DataGridCheckBoxColumn Header="Printed" Binding="{Binding IsPrinted}" Width="80"/>
+                <DataGridTextColumn Header="File Path" Binding="{Binding FilePath}" Width="300"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Status Panel -->
+        <Border Grid.Row="2" Background="LightGray" Padding="10" Margin="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                <ProgressBar Grid.Column="1"
+                             Width="200"
+                             Height="20"
+                             IsIndeterminate="True"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Margin="10,0,0,0"/>
+            </Grid>
+        </Border>
+    </Grid>
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </UserControl.Resources>
+</UserControl>
