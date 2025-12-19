@@ -14,6 +14,7 @@ namespace RemittanceAdviceManager.ViewModels
     {
         private readonly IFileTrackingService _fileTrackingService;
         private readonly IPrintService _printService;
+        private readonly IRemittanceDownloadService _downloadService;
         private readonly ILogger<DownloadedFilesViewModel> _logger;
 
         [ObservableProperty]
@@ -28,14 +29,40 @@ namespace RemittanceAdviceManager.ViewModels
         [ObservableProperty]
         private string _statusMessage = string.Empty;
 
+        [ObservableProperty]
+        private bool _isDownloading;
+
+        [ObservableProperty]
+        private string _downloadProgress = string.Empty;
+
+        [ObservableProperty]
+        private string _username = string.Empty;
+
+        [ObservableProperty]
+        private string _password = string.Empty;
+
+        [ObservableProperty]
+        private string _selectedDate = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<string> _availableDates = new();
+
         public DownloadedFilesViewModel(
             IFileTrackingService fileTrackingService,
             IPrintService printService,
+            IRemittanceDownloadService downloadService,
             ILogger<DownloadedFilesViewModel> logger)
         {
             _fileTrackingService = fileTrackingService;
             _printService = printService;
+            _downloadService = downloadService;
             _logger = logger;
+
+            // Load available dates (last 3 Mondays)
+            var mondays = _downloadService.GetLastThreeMondays();
+            AvailableDates = new ObservableCollection<string>(mondays);
+            if (mondays.Count > 0)
+                SelectedDate = mondays[0];
 
             // Load files on initialization
             _ = LoadFilesAsync();
@@ -145,5 +172,69 @@ namespace RemittanceAdviceManager.ViewModels
                 _logger.LogError(ex, "Error deleting file");
             }
         }
+
+        [RelayCommand(CanExecute = nameof(CanDownload))]
+        private async Task DownloadRemittanceAdvicesAsync()
+        {
+            try
+            {
+                IsDownloading = true;
+                DownloadProgress = "Starting download...";
+
+                // Get download path from configuration (or use default)
+                string downloadPath = @"C:\RemittanceAdvice\Downloaded";
+
+                // Ensure directory exists
+                if (!System.IO.Directory.Exists(downloadPath))
+                {
+                    System.IO.Directory.CreateDirectory(downloadPath);
+                }
+
+                // Download files
+                var downloadedFiles = await _downloadService.DownloadRemittanceAdvicesAsync(
+                    Username,
+                    Password,
+                    SelectedDate,
+                    downloadPath,
+                    progress => DownloadProgress = progress);
+
+                // Track downloaded files in database
+                foreach (var filePath in downloadedFiles)
+                {
+                    var fileName = System.IO.Path.GetFileName(filePath);
+                    var remittanceFile = new RemittanceFile
+                    {
+                        FileName = fileName,
+                        FilePath = filePath,
+                        DownloadedDate = DateTime.Now,
+                        Status = FileStatus.Downloaded,
+                        IsPrinted = false
+                    };
+
+                    await _fileTrackingService.AddFileAsync(remittanceFile);
+                }
+
+                // Reload files to show newly downloaded ones
+                await LoadFilesAsync();
+
+                DownloadProgress = $"Complete! Downloaded {downloadedFiles.Count} files.";
+                _logger.LogInformation($"Downloaded {downloadedFiles.Count} remittance advice files");
+            }
+            catch (Exception ex)
+            {
+                DownloadProgress = $"Error: {ex.Message}";
+                _logger.LogError(ex, "Error downloading remittance advices");
+            }
+            finally
+            {
+                IsDownloading = false;
+            }
+        }
+
+        private bool CanDownload() =>
+            !IsDownloading &&
+            !string.IsNullOrWhiteSpace(Username) &&
+            !string.IsNullOrWhiteSpace(Password) &&
+            !string.IsNullOrWhiteSpace(SelectedDate);
     }
 }

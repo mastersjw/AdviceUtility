@@ -62,6 +62,7 @@ public partial class App : Application
                 services.AddSingleton<IRemittanceUploadService, RemittanceUploadService>();
                 services.AddSingleton<IReportDownloadService, ReportDownloadService>();
                 services.AddSingleton<IPrintService, PrintService>();
+                services.AddSingleton<IRemittanceDownloadService, RemittanceDownloadService>();
 
                 // Register ViewModels
                 services.AddTransient<MainWindowViewModel>();
