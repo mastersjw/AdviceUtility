@@ -19,7 +19,7 @@
             <TabItem Header="Downloaded Files">
                 <views:DownloadedFilesView DataContext="{Binding CurrentView}"/>
             </TabItem>
-            <TabItem Header="Altered PDFs">
+            <TabItem Header="PAID CLAIMS PDFs">
                 <views:AlteredPdfsView DataContext="{Binding CurrentView}"/>
             </TabItem>
             <TabItem Header="Upload to WebDB">

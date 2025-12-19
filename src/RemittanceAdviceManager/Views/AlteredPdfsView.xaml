@@ -38,7 +38,7 @@
                   Margin="5">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
-                <DataGridTextColumn Header="Altered Date" Binding="{Binding DownloadedDate, StringFormat=\{0:g\}}" Width="150"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding DownloadedDate, StringFormat=\{0:g\}}" Width="150"/>
                 <DataGridTextColumn Header="Advice #" Binding="{Binding AdviceNumber}" Width="100"/>
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                 <DataGridCheckBoxColumn Header="Printed" Binding="{Binding IsPrinted}" Width="80"/>
