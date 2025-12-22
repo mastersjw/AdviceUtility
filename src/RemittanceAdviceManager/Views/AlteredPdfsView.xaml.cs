@@ -1,8 +1,6 @@
-using System.Windows.Controls;
-
 namespace RemittanceAdviceManager.Views
 {
-    public partial class AlteredPdfsView : UserControl
+    public partial class AlteredPdfsView : System.Windows.Controls.UserControl
     {
         public AlteredPdfsView()
         {

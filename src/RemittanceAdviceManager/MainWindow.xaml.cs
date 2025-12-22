@@ -1,4 +1,3 @@
-﻿using System.Windows;
 using RemittanceAdviceManager.ViewModels;
 
 namespace RemittanceAdviceManager;
@@ -6,7 +5,7 @@ namespace RemittanceAdviceManager;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : System.Windows.Window
 {
     public MainWindow(MainWindowViewModel viewModel)
     {

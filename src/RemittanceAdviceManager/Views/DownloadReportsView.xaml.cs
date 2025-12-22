@@ -1,16 +1,25 @@
 using System;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
+using RemittanceAdviceManager.ViewModels;
 
 namespace RemittanceAdviceManager.Views
 {
-    public partial class DownloadReportsView : UserControl
+    public partial class DownloadReportsView : System.Windows.Controls.UserControl
     {
         public DownloadReportsView()
         {
             InitializeComponent();
+
+            // Handle password changes since PasswordBox doesn't support binding
+            PasswordBox.PasswordChanged += (s, e) =>
+            {
+                if (DataContext is DownloadReportsViewModel viewModel)
+                {
+                    viewModel.Credentials.Password = PasswordBox.Password;
+                }
+            };
         }
     }
 

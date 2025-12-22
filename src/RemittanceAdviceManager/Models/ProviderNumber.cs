@@ -2,12 +2,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace RemittanceAdviceManager.Models
 {
-    public partial class WebDbCredentials : ObservableObject
+    public partial class ProviderNumber : ObservableObject
     {
         [ObservableProperty]
-        private string _username = string.Empty;
+        private string _number = string.Empty;
 
         [ObservableProperty]
-        private string _password = string.Empty;
+        private bool _isSelected;
     }
 }

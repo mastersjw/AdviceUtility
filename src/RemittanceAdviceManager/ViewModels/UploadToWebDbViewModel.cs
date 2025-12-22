@@ -1,10 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RemittanceAdviceManager.Models;
 using RemittanceAdviceManager.Services.Interfaces;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,7 +16,7 @@ namespace RemittanceAdviceManager.ViewModels
     {
         private readonly IWebDbAuthenticationService _authService;
         private readonly IRemittanceUploadService _uploadService;
-        private readonly IFileTrackingService _fileTrackingService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<UploadToWebDbViewModel> _logger;
 
         [ObservableProperty]
@@ -44,13 +46,30 @@ namespace RemittanceAdviceManager.ViewModels
         public UploadToWebDbViewModel(
             IWebDbAuthenticationService authService,
             IRemittanceUploadService uploadService,
-            IFileTrackingService fileTrackingService,
+            IConfiguration configuration,
             ILogger<UploadToWebDbViewModel> logger)
         {
             _authService = authService;
             _uploadService = uploadService;
-            _fileTrackingService = fileTrackingService;
+            _configuration = configuration;
             _logger = logger;
+
+            // Subscribe to authentication state changes from the service
+            _authService.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        }
+
+        private void OnAuthenticationStateChanged(object? sender, bool isAuthenticated)
+        {
+            IsAuthenticated = isAuthenticated;
+            if (isAuthenticated)
+            {
+                UploadStatus = "Authenticated successfully";
+                _ = LoadFilesToUploadAsync();
+            }
+            else
+            {
+                UploadStatus = "Logged out";
+            }
         }
 
         [RelayCommand]
@@ -86,11 +105,34 @@ namespace RemittanceAdviceManager.ViewModels
         {
             try
             {
-                var files = await _fileTrackingService.GetDownloadedFilesAsync();
+                var downloadFolder = _configuration["Storage:DownloadFolder"] ?? @"C:\RemittanceAdvice\Downloaded";
+
+                if (!Directory.Exists(downloadFolder))
+                {
+                    Directory.CreateDirectory(downloadFolder);
+                }
+
+                var files = Directory.GetFiles(downloadFolder, "*.pdf")
+                    .Select(filePath =>
+                    {
+                        var fileInfo = new FileInfo(filePath);
+                        return new RemittanceFile
+                        {
+                            FileName = fileInfo.Name,
+                            FilePath = filePath,
+                            FileSize = fileInfo.Length,
+                            LastModified = fileInfo.LastWriteTime
+                        };
+                    })
+                    .OrderByDescending(f => f.LastModified)
+                    .ToList();
+
                 FilesToUpload = new ObservableCollection<RemittanceFile>(files);
 
                 UploadStatus = $"Loaded {files.Count} files ready to upload";
                 _logger.LogInformation($"Loaded {files.Count} files for upload");
+
+                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -129,15 +171,6 @@ namespace RemittanceAdviceManager.ViewModels
                 foreach (var result in results)
                 {
                     UploadResults.Add(result);
-
-                    // Update file status in database
-                    var file = selectedFiles.FirstOrDefault(f => f.FileName == result.FileName);
-                    if (file != null && result.Success)
-                    {
-                        await _fileTrackingService.UpdateFileStatusAsync(file.Id, FileStatus.Uploaded);
-                        file.Status = FileStatus.Uploaded;
-                        file.UploadedDate = DateTime.Now;
-                    }
                 }
 
                 var successCount = results.Count(r => r.Success);

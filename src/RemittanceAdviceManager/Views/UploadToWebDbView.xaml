@@ -20,45 +20,31 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Login Panel -->
-        <GroupBox Grid.Row="0" Header="WebDB Authentication" Margin="5" Padding="10">
+        <!-- Login Panel (visible when not authenticated) -->
+        <GroupBox Grid.Row="0" Header="Login" Margin="5" Padding="15"
+                  Visibility="{Binding IsAuthenticated, Converter={StaticResource InverseBoolToVisibilityConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
 
                 <TextBlock Grid.Column="0" Text="Username:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox Grid.Column="1" Text="{Binding Credentials.Username, UpdateSourceTrigger=PropertyChanged}"
-                         Margin="0,0,20,0" IsEnabled="{Binding IsAuthenticated, Converter={StaticResource InverseBooleanConverter}}"/>
+                <TextBox Grid.Column="1" Text="{Binding Credentials.Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,20,0"/>
 
                 <TextBlock Grid.Column="2" Text="Password:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <PasswordBox Grid.Column="3" x:Name="PasswordBox" Margin="0,0,20,0"
-                             IsEnabled="{Binding IsAuthenticated, Converter={StaticResource InverseBooleanConverter}}"/>
+                <PasswordBox Grid.Column="3" x:Name="PasswordBox" Margin="0,0,20,0"/>
 
-                <CheckBox Grid.Column="4" Content="Remember Me"
-                          IsChecked="{Binding Credentials.RememberMe}"
-                          VerticalAlignment="Center" Margin="0,0,20,0"
-                          IsEnabled="{Binding IsAuthenticated, Converter={StaticResource InverseBooleanConverter}}"/>
-
-                <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Login" Command="{Binding AuthenticateCommand}" Padding="15,5" Margin="0,0,10,0"
-                            Visibility="{Binding IsAuthenticated, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
-                    <Button Content="Logout" Command="{Binding LogoutCommand}" Padding="15,5"
-                            Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                </StackPanel>
+                <Button Grid.Column="4" Content="Login" Command="{Binding AuthenticateCommand}" Padding="15,5" HorizontalAlignment="Left"/>
             </Grid>
         </GroupBox>
 
-        <!-- Files to Upload -->
-        <GroupBox Grid.Row="1" Header="Files to Upload" Margin="5" Padding="5">
+        <!-- Files to Upload (visible when authenticated) -->
+        <GroupBox Grid.Row="1" Header="Files to Upload" Margin="5" Padding="5"
+                  Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -84,18 +70,26 @@
                           CanUserAddRows="False"
                           Margin="5">
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                        <DataGridTemplateColumn Header="Select" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Downloaded" Binding="{Binding DownloadedDate, StringFormat=\{0:g\}}" Width="150" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Uploaded" Binding="{Binding UploadedDate, StringFormat=\{0:g\}}" Width="150" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModified, StringFormat=\{0:g\}}" Width="150" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Size (bytes)" Binding="{Binding FileSize}" Width="100" IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
         </GroupBox>
 
-        <!-- Upload Results -->
-        <GroupBox Grid.Row="2" Header="Upload Results" Margin="5" Padding="5" MaxHeight="150">
+        <!-- Upload Results (visible when authenticated) -->
+        <GroupBox Grid.Row="2" Header="Upload Results" Margin="5" Padding="5" MaxHeight="150"
+                  Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
             <DataGrid ItemsSource="{Binding UploadResults}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
@@ -108,8 +102,9 @@
             </DataGrid>
         </GroupBox>
 
-        <!-- Control Panel -->
-        <Border Grid.Row="3" Background="LightGray" Padding="10" Margin="5">
+        <!-- Control Panel (visible when authenticated) -->
+        <Border Grid.Row="3" Background="LightGray" Padding="10" Margin="5"
+                Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>

@@ -56,6 +56,9 @@
             <ToolBar>
                 <Button Content="Refresh" Command="{Binding LoadFilesCommand}" Padding="10,5"/>
                 <Separator/>
+                <Button Content="Select All" Command="{Binding SelectAllCommand}" Padding="10,5"/>
+                <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Padding="10,5"/>
+                <Separator/>
                 <Button Content="Print Selected" Command="{Binding PrintSelectedCommand}" Padding="10,5"/>
                 <Button Content="Print All" Command="{Binding PrintAllCommand}" Padding="10,5"/>
                 <Separator/>
@@ -66,19 +69,23 @@
         <!-- DataGrid -->
         <DataGrid Grid.Row="2"
                   ItemsSource="{Binding DownloadedFiles}"
-                  SelectedItem="{Binding SelectedFile}"
                   AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
                   CanUserAddRows="False"
                   Margin="5">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
-                <DataGridTextColumn Header="Downloaded" Binding="{Binding DownloadedDate, StringFormat=\{0:g\}}" Width="150"/>
-                <DataGridTextColumn Header="Advice #" Binding="{Binding AdviceNumber}" Width="100"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-                <DataGridCheckBoxColumn Header="Printed" Binding="{Binding IsPrinted}" Width="80"/>
-                <DataGridTextColumn Header="File Path" Binding="{Binding FilePath}" Width="300"/>
+                <DataGridTemplateColumn Header="Select" Width="60">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModified, StringFormat=\{0:g\}}" Width="150" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Size (bytes)" Binding="{Binding FileSize}" Width="100" IsReadOnly="True"/>
+                <DataGridTextColumn Header="File Path" Binding="{Binding FilePath}" Width="300" IsReadOnly="True"/>
             </DataGrid.Columns>
         </DataGrid>
 

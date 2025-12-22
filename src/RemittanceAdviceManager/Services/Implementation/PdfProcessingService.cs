@@ -6,6 +6,7 @@ using iText.Kernel.Utils;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using RemittanceAdviceManager.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace RemittanceAdviceManager.Services.Implementation
@@ -13,10 +14,14 @@ namespace RemittanceAdviceManager.Services.Implementation
     public class PdfProcessingService : IPdfProcessingService
     {
         private readonly ILogger<PdfProcessingService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public PdfProcessingService(ILogger<PdfProcessingService> logger)
+        public PdfProcessingService(
+            ILogger<PdfProcessingService> logger,
+            IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<bool> AlterPdfAsync(string sourcePath, string destinationPath)
@@ -181,7 +186,18 @@ namespace RemittanceAdviceManager.Services.Implementation
         private async Task<string> SaveExtractedPageAsync(string pdfPath, int pageToExtract, string date, string providerId)
         {
             string outputFileName = $"TotalsPage_{date}_{providerId}.pdf";
-            string outputPath = Path.Combine(Path.GetDirectoryName(pdfPath), outputFileName);
+
+            // Get Altered folder from configuration
+            string alteredFolder = _configuration["Storage:AlteredFolder"] ?? @"C:\RemittanceAdvice\Altered";
+
+            // Ensure the Altered folder exists
+            if (!Directory.Exists(alteredFolder))
+            {
+                Directory.CreateDirectory(alteredFolder);
+                _logger.LogInformation($"Created Altered folder: {alteredFolder}");
+            }
+
+            string outputPath = Path.Combine(alteredFolder, outputFileName);
 
             try
             {

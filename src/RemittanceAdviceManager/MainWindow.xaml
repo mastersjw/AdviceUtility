@@ -17,16 +17,16 @@
         <!-- Tab Control -->
         <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
             <TabItem Header="Downloaded Files">
-                <views:DownloadedFilesView DataContext="{Binding CurrentView}"/>
+                <views:DownloadedFilesView DataContext="{Binding DownloadedFilesViewModel}"/>
             </TabItem>
             <TabItem Header="PAID CLAIMS PDFs">
-                <views:AlteredPdfsView DataContext="{Binding CurrentView}"/>
+                <views:AlteredPdfsView DataContext="{Binding AlteredPdfsViewModel}"/>
             </TabItem>
             <TabItem Header="Upload to WebDB">
-                <views:UploadToWebDbView DataContext="{Binding CurrentView}"/>
+                <views:UploadToWebDbView DataContext="{Binding UploadToWebDbViewModel}"/>
             </TabItem>
             <TabItem Header="Download Reports">
-                <views:DownloadReportsView DataContext="{Binding CurrentView}"/>
+                <views:DownloadReportsView DataContext="{Binding DownloadReportsViewModel}"/>
             </TabItem>
         </TabControl>
 

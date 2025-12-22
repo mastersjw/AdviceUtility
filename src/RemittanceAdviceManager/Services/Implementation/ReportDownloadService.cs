@@ -40,7 +40,7 @@ namespace RemittanceAdviceManager.Services.Implementation
                     throw new UnauthorizedAccessException("Not authenticated. Please log in first.");
                 }
 
-                var baseUrl = _configuration["WebDb:BaseUrl"] ?? "https://localhost:44356";
+                var baseUrl = _configuration["WebDb:BaseUrl"] ?? "https://10.0.0.51/db";
                 var reportPath = _configuration["WebDb:ReportPath"] ?? "/Reports/Internal/ProviderCheckTotals.aspx";
 
                 // Build URL with query parameters
@@ -55,20 +55,10 @@ namespace RemittanceAdviceManager.Services.Implementation
                     $"{HttpUtility.UrlEncode(kvp.Key)}={HttpUtility.UrlEncode(kvp.Value)}"));
                 var url = $"{baseUrl}{reportPath}?{queryString}";
 
-                _logger.LogInformation($"Downloading report: {url}");
+                _logger.LogInformation($"Downloading report from: {url}");
 
-                // GET request to download report
-                var response = await _httpClient.GetAsync(url);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError($"Report download failed: {response.StatusCode} - {errorContent}");
-                    throw new HttpRequestException($"Report download failed: {response.StatusCode}");
-                }
-
-                // Return PDF bytes
-                var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                // Use Selenium to navigate and download with full session context
+                var pdfBytes = await _authService.NavigateAndDownloadAsync(url);
                 _logger.LogInformation($"Successfully downloaded report ({pdfBytes.Length} bytes)");
 
                 return pdfBytes;
@@ -84,17 +74,27 @@ namespace RemittanceAdviceManager.Services.Implementation
         {
             try
             {
-                // TODO: Implement scraping of available dates from WebDB dropdown
-                // For now, return sample dates
+                // Return Mondays (start of each week) for the past 13 weeks
+                // Using same logic as GetLastThreeMondays
                 var dates = new List<DateTime>();
-                var currentDate = DateTime.Now.Date;
+                var today = DateTime.Today;
 
-                for (int i = 0; i < 90; i += 7)
+                // Calculate days since last Monday
+                int daysSinceMonday = ((int)today.DayOfWeek - 1);
+                if (daysSinceMonday < 0)
+                    daysSinceMonday += 7;
+
+                var lastMonday = today.AddDays(-daysSinceMonday);
+
+                // Add the past 13 weeks of Mondays
+                for (int i = 0; i < 13; i++)
                 {
-                    dates.Add(currentDate.AddDays(-i));
+                    dates.Add(lastMonday);
+                    _logger.LogInformation($"Adding Monday: {lastMonday:M/d/yyyy} ({lastMonday.DayOfWeek})");
+                    lastMonday = lastMonday.AddDays(-7);
                 }
 
-                _logger.LogInformation($"Retrieved {dates.Count} available advice dates");
+                _logger.LogInformation($"Retrieved {dates.Count} available advice dates (Mondays)");
                 return await Task.FromResult(dates);
             }
             catch (Exception ex)

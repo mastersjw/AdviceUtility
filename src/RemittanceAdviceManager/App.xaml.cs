@@ -1,11 +1,8 @@
 ﻿using System.IO;
-using System.Windows;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using RemittanceAdviceManager.Data;
 using RemittanceAdviceManager.Services.Interfaces;
 using RemittanceAdviceManager.Services.Implementation;
 using RemittanceAdviceManager.ViewModels;
@@ -15,7 +12,7 @@ namespace RemittanceAdviceManager;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private IHost? _host;
 
@@ -50,13 +47,7 @@ public partial class App : Application
                 services.AddHttpClient<IRemittanceUploadService, RemittanceUploadService>();
                 services.AddHttpClient<IReportDownloadService, ReportDownloadService>();
 
-                // Register DbContext with SQLite
-                var dbPath = configuration["Storage:DatabaseFile"] ?? "remittance_tracker.db";
-                services.AddDbContext<AppDbContext>(options =>
-                    options.UseSqlite($"Data Source={dbPath}"));
-
                 // Register Services
-                services.AddSingleton<IFileTrackingService, FileTrackingService>();
                 services.AddSingleton<IPdfProcessingService, PdfProcessingService>();
                 services.AddSingleton<IWebDbAuthenticationService, WebDbAuthenticationService>();
                 services.AddSingleton<IRemittanceUploadService, RemittanceUploadService>();
@@ -78,16 +69,9 @@ public partial class App : Application
             .Build();
     }
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(System.Windows.StartupEventArgs e)
     {
         await _host!.StartAsync();
-
-        // Ensure database is created
-        using (var scope = _host.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await dbContext.Database.EnsureCreatedAsync();
-        }
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
@@ -95,7 +79,7 @@ public partial class App : Application
         base.OnStartup(e);
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    protected override async void OnExit(System.Windows.ExitEventArgs e)
     {
         await _host!.StopAsync();
         _host.Dispose();

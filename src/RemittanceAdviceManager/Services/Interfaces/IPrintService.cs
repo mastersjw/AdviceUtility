@@ -5,7 +5,7 @@ namespace RemittanceAdviceManager.Services.Interfaces
 {
     public interface IPrintService
     {
-        Task PrintPdfAsync(string pdfPath);
-        Task PrintMultiplePdfsAsync(List<string> pdfPaths, bool showDialog = true);
+        Task<bool> PrintPdfAsync(string pdfPath, bool showDialog = true);
+        Task<int> PrintMultiplePdfsAsync(List<string> pdfPaths, bool showDialog = false);
     }
 }

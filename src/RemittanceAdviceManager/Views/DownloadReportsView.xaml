@@ -8,19 +8,20 @@
              d:DesignHeight="600" d:DesignWidth="1000">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-        <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
-        <local:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
+        <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Parameter Selection -->
-        <GroupBox Grid.Row="0" Header="Provider Check Totals Report" Margin="5" Padding="15">
+        <!-- Login Section (visible when not authenticated) -->
+        <GroupBox Grid.Row="0" Header="Login" Margin="5" Padding="15"
+                  Visibility="{Binding IsAuthenticated, Converter={StaticResource InverseBoolToVisibilityConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -29,73 +30,152 @@
                     <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
 
-                <!-- Advice Date -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Advice Date:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox Grid.Row="0" Grid.Column="1"
-                          ItemsSource="{Binding AvailableDates}"
-                          SelectedItem="{Binding SelectedAdviceDate}"
-                          DisplayMemberPath=""
-                          Margin="0,0,20,0">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding StringFormat=\{0:d\}}"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                <TextBlock Grid.Column="0" Text="Username:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox Grid.Column="1" Text="{Binding Credentials.Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,20,0"/>
 
-                <!-- Vendor Number -->
-                <TextBlock Grid.Row="0" Grid.Column="2" Text="Vendor Number:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox Grid.Row="0" Grid.Column="3"
-                          ItemsSource="{Binding VendorNumbers}"
-                          SelectedItem="{Binding SelectedVendorNum}"
-                          Margin="0,0,20,0"/>
+                <TextBlock Grid.Column="2" Text="Password:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <PasswordBox x:Name="PasswordBox" Grid.Column="3" Margin="0,0,20,0"/>
 
-                <!-- Buttons -->
-                <StackPanel Grid.Row="0" Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Load Parameters" Command="{Binding LoadParametersCommand}" Padding="15,5" Margin="0,0,10,0"/>
-                    <Button Content="Download Report" Command="{Binding DownloadReportCommand}" Padding="15,5" Margin="0,0,10,0"/>
-                    <Button Content="Print Report" Command="{Binding PrintReportCommand}" Padding="15,5" Margin="0,0,10,0"/>
-                    <Button Content="Save Report" Command="{Binding SaveReportCommand}" Padding="15,5"/>
-                </StackPanel>
-
-                <!-- Explanation -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
-                           Text="This report shows a breakdown of remittance check money by office and date for the selected advice date and vendor number."
-                           TextWrapping="Wrap" Foreground="Gray" FontStyle="Italic"/>
+                <Button Grid.Column="4" Content="Login" Command="{Binding LoginCommand}" Padding="15,5" HorizontalAlignment="Left"/>
             </Grid>
         </GroupBox>
 
-        <!-- Report Preview -->
-        <GroupBox Grid.Row="1" Header="Report Preview" Margin="5" Padding="5">
-            <Border BorderBrush="Gray" BorderThickness="1">
-                <Grid>
-                    <TextBlock Text="Report will be displayed here after download.\n\nClick 'Download Report' to fetch the Provider Check Totals report from WebDB.\n\nNote: You must be authenticated as an Administrator to access this report."
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               TextAlignment="Center"
-                               Foreground="Gray"
-                               Visibility="{Binding ReportPreviewPath, Converter={StaticResource NullToVisibilityConverter}}"/>
+        <!-- Report Parameters (visible when authenticated) -->
+        <GroupBox Grid.Row="1" Header="Provider Check Totals Report" Margin="5" Padding="15"
+                  Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                    <!-- Placeholder for PDF viewer - in a real app, you would use a PDF viewer control -->
-                    <TextBlock Text="{Binding ReportPreviewPath, StringFormat='Report downloaded: \{0\}\n\nUse Print Report button to print or Save Report to save to disk.'}"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
-                               Margin="20"
-                               Visibility="{Binding ReportPreviewPath, Converter={StaticResource NotNullToVisibilityConverter}}"/>
+                <!-- Date and Folder Selection -->
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Advice Date -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Advice Date:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableDates}" SelectedItem="{Binding SelectedAdviceDate}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding StringFormat=\{0:M/d/yyyy\}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Download Reports" Command="{Binding DownloadReportCommand}" Padding="15,5"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Download Folder -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Download Folder:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox Grid.Column="1" Text="{Binding DownloadFolder}" IsReadOnly="True" Margin="0,0,10,0"/>
+                        <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseFolderCommand}" Padding="10,5"/>
+                    </Grid>
                 </Grid>
-            </Border>
+
+                <!-- Provider Numbers -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,10,0">
+                        <TextBlock Text="Provider Numbers:" VerticalAlignment="Top" Margin="0,5,10,0"/>
+                        <StackPanel Orientation="Vertical">
+                            <Button Content="Check All" Command="{Binding CheckAllProvidersCommand}" Padding="10,3" Margin="0,0,0,5" Width="100"/>
+                            <Button Content="Uncheck All" Command="{Binding UncheckAllProvidersCommand}" Padding="10,3" Width="100"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Column="1" MaxHeight="120" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ProviderNumbers}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Number}" IsChecked="{Binding IsSelected}" Margin="0,2,15,2" Width="80"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </GroupBox>
+
+        <!-- Downloaded Reports List -->
+        <GroupBox Grid.Row="2" Header="Downloaded Reports" Margin="5" Padding="5"
+                  Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                    <Button Content="Refresh" Command="{Binding LoadExistingReportsCommand}" Padding="10,5" Margin="0,0,10,0"/>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,10,0"/>
+                    <Button Content="Check All" Command="{Binding CheckAllReportsCommand}" Padding="10,5" Margin="0,0,10,0"/>
+                    <Button Content="Uncheck All" Command="{Binding UncheckAllReportsCommand}" Padding="10,5" Margin="0,0,10,0"/>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,10,0"/>
+                    <Button Content="Print Selected" Command="{Binding PrintSelectedReportsCommand}" Padding="10,5" Margin="0,0,10,0"/>
+                    <Button Content="Move Selected to Folder..." Command="{Binding MoveSelectedReportsCommand}" Padding="10,5" Margin="0,0,10,0"/>
+                    <Button Content="Delete Selected" Command="{Binding DeleteSelectedReportsCommand}" Padding="10,5"/>
+                </StackPanel>
+
+                <!-- Reports DataGrid -->
+                <DataGrid Grid.Row="1" ItemsSource="{Binding DownloadedReports}" AutoGenerateColumns="False"
+                          IsReadOnly="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Select" Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Provider" Binding="{Binding ProviderNumber}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Advice Date" Binding="{Binding AdviceDate, StringFormat=\{0:M/d/yyyy\}}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Size (bytes)" Binding="{Binding FileSize}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Downloaded" Binding="{Binding DownloadedAt, StringFormat=\{0:g\}}" Width="150" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </GroupBox>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" Background="LightGray" Padding="10" Margin="5">
+        <Border Grid.Row="3" Background="LightGray" Padding="10" Margin="5">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -103,10 +183,7 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
-                <ProgressBar Grid.Column="1"
-                             Width="200"
-                             Height="20"
-                             IsIndeterminate="True"
+                <ProgressBar Grid.Column="1" Width="200" Height="20" IsIndeterminate="True"
                              Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}"
                              Margin="10,0,0,0"/>
             </Grid>

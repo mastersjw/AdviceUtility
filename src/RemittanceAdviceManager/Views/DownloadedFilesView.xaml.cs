@@ -1,9 +1,8 @@
-using System.Windows.Controls;
 using RemittanceAdviceManager.ViewModels;
 
 namespace RemittanceAdviceManager.Views
 {
-    public partial class DownloadedFilesView : UserControl
+    public partial class DownloadedFilesView : System.Windows.Controls.UserControl
     {
         public DownloadedFilesView()
         {
